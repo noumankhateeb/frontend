@@ -1,26 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+// App.tsx (with default login route)
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import Login from './components/Login';
+import Dashboard from './pages/Dashboard';
+import { useSelector } from 'react-redux';
+import { RootState } from './redux/store';
+import Signup from './components/Signup';
 
-function App() {
+const App: React.FC = () => {
+
+  const navigate = useNavigate()
+  const location = useLocation()
+  const token = useSelector((state: RootState) => state.auth.token);
+
+  useEffect(() => {
+    if (!localStorage.getItem('token') && !location.pathname.includes("/auth")) {
+      navigate('/auth/login')
+    }
+  }, [location, navigate])
+
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+
+    if (token || storedToken) {
+      navigate('/dashboard');
+    }
+  }, [token, navigate]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+
+    <Routes>
+      <Route path="/" element={<Navigate to="/auth/login" replace />} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/signup" element={<Signup />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
+
   );
-}
+};
 
 export default App;
