@@ -1,9 +1,17 @@
 // redux/slices/auth/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+interface UserData {
+  firstname: string;
+  lastname: string;
+  email: string;
+  dob: string;
+  phone: string;
+}
+
 interface AuthState {
   isAuthenticated: boolean;
-  authData: object | null;
+  authData: UserData | null;
   token: string | null;
   loading: boolean;
   error: string | null;
@@ -23,7 +31,7 @@ const authSlice = createSlice({
   reducers: {
     loginSuccess: (state, action: PayloadAction<{ token: string; user: object }>) => {
       state.isAuthenticated = true;
-      state.authData = action.payload.user;
+      state.authData = action.payload.user as UserData;
       state.token = action.payload.token;
       state.loading = false;
       state.error = null;
@@ -38,7 +46,7 @@ const authSlice = createSlice({
     },
     signupSuccess: (state, action: PayloadAction<{ token: string; user: object }>) => {
       state.isAuthenticated = true;
-      state.authData = action.payload.user;
+      state.authData = action.payload.user as UserData;
       state.token = action.payload.token;
       state.loading = false;
       state.error = null;
