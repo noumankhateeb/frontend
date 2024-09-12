@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useSignupUserMutation } from '../redux/slices/auth/authAction';
-import { useAppDispatch } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { signupSuccess, signupFailure } from '../redux/slices/auth/authSlice';
 import { signupSchema } from '../helper/schema/signupSchema';
 import {
@@ -16,6 +16,7 @@ import {
     Link,
     FormControlLabel,
     Checkbox,
+    Alert,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -40,6 +41,7 @@ const Signup: React.FC = () => {
     });
     const [signupUser, { isLoading }] = useSignupUserMutation();
     const [showPassword, setShowPassword] = useState(false);
+    const [authError, setAuthError] = useState('');
 
     const onSubmit = async (data: SignupFormInputs) => {
         try {
@@ -47,7 +49,8 @@ const Signup: React.FC = () => {
             dispatch(signupSuccess({ user: response.user, token: response.token }));
             reset();
         } catch (err: any) {
-            dispatch(signupFailure(err?.data?.message || 'Signup failed'));
+            dispatch(signupFailure(err?.data?.error || 'Signup failed'));
+            setAuthError(err?.data?.error || 'Signup failed')
         }
     };
 
@@ -305,11 +308,6 @@ const Signup: React.FC = () => {
                             error={!!errors.dob}
                             helperText={errors.dob?.message}
                             InputLabelProps={{ shrink: true }}
-                            // InputProps={{
-                            //     endAdornment: (
-                            //         <CalendarTodayIcon sx={{ color: 'black' }} />
-                            //     ),
-                            // }}
                             fullWidth
                             sx={{
                                 '& .MuiOutlinedInput-root': {
@@ -348,6 +346,13 @@ const Signup: React.FC = () => {
                                 endAdornment: (
                                     <PhoneIcon sx={{ color: 'black' }} />
                                 ),
+                                inputProps: {
+                                    onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => {
+                                        if (!/[0-9]/.test(event.key)) {
+                                            event.preventDefault();
+                                        }
+                                    }
+                                },
                             }}
                             fullWidth
                             sx={{
@@ -375,6 +380,8 @@ const Signup: React.FC = () => {
                                 },
                             }}
                         />
+
+                        {authError && <Alert severity="error">{authError}</Alert>}
 
                         <Button
                             type="submit"

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useLoginUserMutation } from '../redux/slices/auth/authAction';
-import { useAppDispatch } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { loginSuccess, loginFailure } from '../redux/slices/auth/authSlice';
 import { loginSchema } from '../helper/schema/loginSchema';
 import {
@@ -15,6 +15,7 @@ import {
     Checkbox,
     FormControlLabel,
     Link,
+    Alert,
 } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import LockIcon from '@mui/icons-material/Lock';
@@ -33,13 +34,15 @@ const Login: React.FC = () => {
     const [loginUser, { isLoading }] = useLoginUserMutation();
 
     const [showPassword, setShowPassword] = useState(false);
+    const [authError, setAuthError] = useState('');
 
     const onSubmit = async (data: LoginFormInputs) => {
         try {
             const response = await loginUser(data).unwrap();
             dispatch(loginSuccess({ user: response.user, token: response.token }));
         } catch (err: any) {
-            dispatch(loginFailure(err?.data?.message || 'Login failed'));
+            dispatch(loginFailure(err?.data?.error || 'Login failed'));
+            setAuthError(err?.data?.error || 'Login failed')
         }
     };
 
@@ -55,9 +58,9 @@ const Login: React.FC = () => {
                 backgroundImage: 'url("/backgroundImage.jpg")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundAttachment: 'fixed', // Fix background
-                padding: '20px', // Add padding around the box
-                boxSizing: 'border-box', // Prevent overflow from padding
+                backgroundAttachment: 'fixed',
+                padding: '20px',
+                boxSizing: 'border-box',
             }}
         >
             <Card
@@ -176,6 +179,8 @@ const Login: React.FC = () => {
                                 sx={{ margin: 0 }}
                             />
                         </Box>
+
+                        {authError && <Alert severity="error">{authError}</Alert>}
 
                         <Button
                             type="submit"

@@ -1,4 +1,3 @@
-// redux/slices/auth/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface UserData {
@@ -59,6 +58,15 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    updateProfileSuccess: (state, action: PayloadAction<UserData>) => {
+      state.authData = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
+    updateProfileFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     logout: (state) => {
       state.isAuthenticated = false;
       state.authData = null;
@@ -70,6 +78,14 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, loginFailure, signupSuccess, signupFailure, logout } = authSlice.actions;
+export const {
+  loginSuccess,
+  loginFailure,
+  signupSuccess,
+  signupFailure,
+  updateProfileSuccess,
+  updateProfileFailure,
+  logout
+} = authSlice.actions;
 
 export default authSlice.reducer;

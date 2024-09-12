@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Card, CardContent, Typography, Container, Box, TextField, Button, IconButton } from '@mui/material';
+import { Card, CardContent, Typography, Container, Box, TextField, Button, IconButton, Alert } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import Navbar from '../components/Navbar';
 import { editProfileSchema } from '../helper/schema/editProfileSchema';
 import { RootState } from '../redux/rootReducer';
+import moment from 'moment';
+import { useUpdateUserProfileMutation } from '../redux/slices/auth/authAction';
+import { updateProfileSuccess, updateProfileFailure } from '../redux/slices/auth/authSlice';
 
 type ProfileFormInputs = {
     firstname: string;
@@ -19,26 +22,45 @@ type ProfileFormInputs = {
 
 const Dashboard: React.FC = () => {
     const authData = useSelector((state: RootState) => state.auth.authData);
+    const token = useSelector((state: RootState) => state.auth.token);
     const [isEditing, setIsEditing] = useState(false);
+    const dispatch = useDispatch();
+    const [updateUserProfile] = useUpdateUserProfileMutation();
+    const [authError, setAuthError] = useState('');
 
-    const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormInputs>({
+    const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<ProfileFormInputs>({
         resolver: yupResolver(editProfileSchema),
-        defaultValues: {
-            firstname: authData?.firstname,
-            lastname: authData?.lastname,
-            email: authData?.email,
-            dob: authData?.dob,
-            phone: authData?.phone,
-        }
     });
+
+    useEffect(() => {
+        if (isEditing && authData) {
+            reset({
+                firstname: authData.firstname,
+                lastname: authData.lastname,
+                email: authData.email,
+                dob: moment(authData.dob).format('YYYY-MM-DD'),
+                phone: authData.phone,
+            });
+        }
+    }, [isEditing, authData, reset]);
 
     const handleEdit = () => {
         setIsEditing(!isEditing);
     };
 
-    const onSubmit = (data: ProfileFormInputs) => {
-        console.log('Updated profile data:', data);
-        setIsEditing(false);
+    const onSubmit = async (data: ProfileFormInputs) => {
+        try {
+            const response = await updateUserProfile({ token, profileData: data }).unwrap();
+            dispatch(updateProfileSuccess(response.user));
+
+            setIsEditing(false);
+        } catch (error: any) {
+
+            const errorMessage = error?.data?.error || error?.error || 'Failed to update profile';
+
+            dispatch(updateProfileFailure(errorMessage));
+            setAuthError(error?.data?.error || 'Failed to update profile')
+        }
     };
 
     return (
@@ -67,6 +89,7 @@ const Dashboard: React.FC = () => {
                             border: '2px solid rgba(255, 255, 255, 0.5)',
                             backdropFilter: 'blur(20px)',
                             position: 'relative',
+                            marginTop:'50px'
                         }}
                     >
                         <CardContent>
@@ -150,7 +173,19 @@ const Dashboard: React.FC = () => {
                                         error={!!errors.phone}
                                         helperText={errors.phone?.message}
                                         fullWidth
+                                        InputProps={{
+                                            inputProps: {
+                                                onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => {
+                                                    if (!/[0-9]/.test(event.key)) {
+                                                        event.preventDefault();
+                                                    }
+                                                }
+                                            },
+                                        }}
                                     />
+
+                                    {authError && <Alert severity="error">{authError}</Alert>}
+
                                     <Button
                                         type="submit"
                                         variant="contained"
@@ -164,18 +199,17 @@ const Dashboard: React.FC = () => {
                                                 backgroundColor: '#333',
                                             },
                                         }}
-                                        disabled={!isDirty}  // Disable the button if the form is not dirty
+                                        disabled={!isDirty}
                                     >
                                         Update
                                     </Button>
-
                                 </Box>
                             ) : (
                                 <>
                                     <Typography variant="body1"><strong>First Name:</strong> {authData?.firstname}</Typography>
                                     <Typography variant="body1"><strong>Last Name:</strong> {authData?.lastname}</Typography>
                                     <Typography variant="body1"><strong>Email:</strong> {authData?.email}</Typography>
-                                    <Typography variant="body1"><strong>Date of Birth:</strong> {authData?.dob}</Typography>
+                                    <Typography variant="body1"><strong>Date of Birth:</strong> {moment(authData?.dob).format('MM-DD-YYYY')}</Typography>
                                     <Typography variant="body1"><strong>Phone:</strong> {authData?.phone}</Typography>
                                 </>
                             )}

@@ -1,9 +1,8 @@
-// redux/slices/auth/authAction.tsx
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const authAction = createApi({
     reducerPath: 'authAction',
-    baseQuery: fetchBaseQuery({ baseUrl: '/api/user' }), // Base URL for the backend
+    baseQuery: fetchBaseQuery({ baseUrl: '/api/user' }),
     endpoints: (builder) => ({
         loginUser: builder.mutation({
             query: (credentials) => ({
@@ -19,7 +18,18 @@ export const authAction = createApi({
                 body: userData,
             }),
         }),
+
+        updateUserProfile: builder.mutation({
+            query: ({ token, profileData }) => ({
+                url: '/edit',
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: profileData,
+            }),
+        }),
     }),
 });
 
-export const { useLoginUserMutation, useSignupUserMutation } = authAction;
+export const { useLoginUserMutation, useSignupUserMutation, useUpdateUserProfileMutation } = authAction;
