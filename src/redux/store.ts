@@ -1,16 +1,24 @@
-// redux/slices/auth/store.ts
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/auth/authSlice';
-import { authAction } from './slices/auth/authAction';
+import { persistReducer, persistStore } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { configureStore } from '@reduxjs/toolkit'
+import rootReducer from './rootReducer';
 
-export const store = configureStore({
-    reducer: {
-        auth: authReducer,
-        [authAction.reducerPath]: authAction.reducer,
-    },
+
+const persistConfig = {
+  key: "root",
+  storage: storage,
+  blacklist: ["listManagement"],
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+ export const store = 
+  configureStore({
+    reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(authAction.middleware),
+      getDefaultMiddleware({
+        serializableCheck: false
+      }),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export const persistor = persistStore(store);

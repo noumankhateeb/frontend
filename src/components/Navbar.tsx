@@ -16,12 +16,36 @@ const Navbar: React.FC = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar
+        position="absolute"
+        sx={{
+          backgroundColor: 'rgba(255, 255, 255, 0.1)', // Transparent background
+          backdropFilter: 'blur(20px)', // Glassy effect
+          borderBottom: '2px solid rgba(255, 255, 255, 0.5)', // Border to match the frosted glass effect
+          boxShadow: '0 0 30px rgba(0, 0, 0, 0.5)', // Similar shadow for consistency
+        }}
+      >
         <Toolbar>
-          <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h4"
+            component="div"
+            sx={{ flexGrow: 1, color: 'black' }} // Text color to stand out on the frosted background
+          >
             Nouman Khateeb
           </Typography>
-          <Button color="inherit" onClick={handleLogout}>Logout</Button>
+          <Button
+            color="inherit"
+            onClick={handleLogout}
+            sx={{
+              color: 'black', // Button text color
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.1)', // Light hover effect
+              },
+            }}
+          >
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
     </Box>

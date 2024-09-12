@@ -1,59 +1,26 @@
-// App.tsx
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from './redux/store';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import { RootState } from './redux/rootReducer';
 
 const App: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
+  // Get the current authentication state from Redux
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const token = useSelector((state: RootState) => state.auth.token);
-
-  // If user is not authenticated, redirect to login page for protected routes
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-
-    // Redirect to login page if the user is not authenticated and tries to access a protected route
-    if (!storedToken && !isAuthenticated && !location.pathname.includes('/auth')) {
-      navigate('/auth/login');
-    }
-  }, [location, isAuthenticated, navigate]);
-
-  // Redirect user to the dashboard if they are authenticated
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-
-    if (isAuthenticated || storedToken) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, token, navigate]);
+  
+  // Token check for added robustness
+  const storedToken = localStorage.getItem('token');
+  const isAuthValid = isAuthenticated || storedToken;
 
   return (
     <Routes>
-      {/* Redirect to /auth/login if the user is not authenticated */}
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />} />
-
-      {/* Public routes (Login and Signup) */}
-      {!isAuthenticated ? (
-        <>
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/signup" element={<Signup />} />
-        </>
-      ) : (
-        <Route path="/auth/*" element={<Navigate to="/dashboard" replace />} />
-      )}
-
-      {/* Protected route (Dashboard) */}
-      {isAuthenticated ? (
-        <Route path="/dashboard" element={<Dashboard />} />
-      ) : (
-        <Route path="/dashboard" element={<Navigate to="/auth/login" replace />} />
-      )}
+      {/* Handle protected routes */}
+      <Route path="/" element={isAuthValid ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />} />
+      <Route path="/auth/login" element={isAuthValid ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/auth/signup" element={isAuthValid ? <Navigate to="/dashboard" replace /> : <Signup />} />
+      <Route path="/dashboard" element={isAuthValid ? <Dashboard /> : <Navigate to="/auth/login" replace />} />
     </Routes>
   );
 };
