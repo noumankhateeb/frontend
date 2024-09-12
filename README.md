@@ -5,7 +5,7 @@
 ### Download the Project
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/noumankhateeb/frontend.git
    ```
 2. Navigate to the frontend directory:
    ```bash
